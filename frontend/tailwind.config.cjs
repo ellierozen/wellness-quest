@@ -5,7 +5,12 @@ module.exports = {
       "./src/**/*.{js,ts,jsx,tsx}",
     ],
     theme: {
-      extend: {},
+      extend: {
+        fontFamily: {
+          medieval: ["MedievalSharp", "serif"],
+          cinzel: ["Cinzel Decorative", "serif"],
+        },
+      },
     },
     plugins: [],
   };

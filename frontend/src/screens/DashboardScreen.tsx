@@ -1,6 +1,7 @@
 import React from "react";
 import type { Screen, Profile } from "../App";
 
+
 type ScreenSetter = React.Dispatch<React.SetStateAction<Screen>>;
 
 interface DashboardProps {

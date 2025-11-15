@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=MedievalSharp&family=Cinzel+Decorative:wght@400;700&display=swap");
 @import "tailwindcss";
 
 :root {
@@ -54,6 +55,13 @@ button:hover {
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
+}
+.font-medieval {
+  font-family: "MedievalSharp", serif;
+}
+
+.font-cinzel {
+  font-family: "Cinzel Decorative", serif;
 }
 
 @media (prefers-color-scheme: light) {

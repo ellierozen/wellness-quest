@@ -1,35 +1,45 @@
 import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import OnboardingScreen from "./screens/OnboardingScreen";
+import DashboardScreen from "./screens/DashboardScreen";
+import StatsScreen from "./screens/StatsScreen";
+import DayDetailScreen from "./screens/DayDetailScreen";
+import PostDayLogScreen from "./screens/PostDayLogScreen";
 
 function App() {
-  const [count, setCount] = useState(0)
+  type Screen =
+    | "onboarding"
+    | "dashboard"
+    | "stats"
+    | "dayDetail"
+    | "postDayLog";
+
+  const [currentScreen, setCurrentScreen] = useState<Screen>("onboarding");
+  const [selectedDay, setSelectedDay] = useState<number | null>(null);
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <div className="App">
+      {currentScreen === "onboarding" && (
+        <OnboardingScreen goTo={setCurrentScreen} />
+      )}
+
+      {currentScreen === "dashboard" && (
+        <DashboardScreen
+          goTo={setCurrentScreen}
+          selectDay={setSelectedDay}
+        />
+      )}
+
+      {currentScreen === "stats" && <StatsScreen goTo={setCurrentScreen} />}
+
+      {currentScreen === "dayDetail" && selectedDay !== null && (
+        <DayDetailScreen goTo={setCurrentScreen} day={selectedDay} />
+      )}
+
+      {currentScreen === "postDayLog" && selectedDay !== null && (
+        <PostDayLogScreen goTo={setCurrentScreen} day={selectedDay} />
+      )}
+    </div>
+  );
 }
 
 export default App

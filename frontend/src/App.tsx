@@ -35,8 +35,10 @@ function App() {
   const [currentScreen, setCurrentScreen] = useState<Screen>("onboarding");
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
 
-  // store the user profile here so ALL screens can use it
   const [profile, setProfile] = useState<Profile | null>(null);
+
+  // 👇 NEW: remember which day was just fully completed
+  const [lastCompletedDay, setLastCompletedDay] = useState<number | null>(null);
 
   return (
     <div className="App">
@@ -52,6 +54,7 @@ function App() {
           goTo={setCurrentScreen}
           selectDay={setSelectedDay}
           profile={profile}
+          lastCompletedDay={lastCompletedDay}
         />
       )}
 
@@ -76,6 +79,7 @@ function App() {
           day={selectedDay}
           profile={profile}
           setProfile={setProfile}
+          setLastCompletedDay={setLastCompletedDay}
         />
       )}
     </div>

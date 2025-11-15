@@ -7,7 +7,16 @@ interface PostDayLogProps {
   goTo: ScreenSetter;
   day: number;
   profile: Profile | null;
-  setProfile: React.Dispatch<React.SetStateAction<Profile | null>>; // add this prop
+  setProfile: React.Dispatch<React.SetStateAction<Profile | null>>;
+  setLastCompletedDay: React.Dispatch<React.SetStateAction<number | null>>;
+}
+
+interface PostDayLogProps {
+  goTo: ScreenSetter;
+  day: number;
+  profile: Profile | null;
+  setProfile: React.Dispatch<React.SetStateAction<Profile | null>>;
+  setLastCompletedDay: React.Dispatch<React.SetStateAction<number | null>>; // 👈 NEW
 }
 
 const PostDayLogScreen: React.FC<PostDayLogProps> = ({
@@ -15,7 +24,9 @@ const PostDayLogScreen: React.FC<PostDayLogProps> = ({
   day,
   profile,
   setProfile,
+  setLastCompletedDay, // 👈 NEW
 }) => {
+
   const [completed, setCompleted] = useState<"yes" | "no" | "">("");
   const [reflection, setReflection] = useState("");
 
@@ -26,22 +37,24 @@ const PostDayLogScreen: React.FC<PostDayLogProps> = ({
       alert("Did you complete the quest today? ⚔️");
       return;
     }
-
-    // Update profile progress if fully completed
+  
     if (completed === "yes" && profile) {
+      // 👉 remember which day was just finished
+      setLastCompletedDay(day);
+  
+      // advance the quest progress
       setProfile({
         ...profile,
-        currentDay: Math.min(profile.currentDay + 1, 75), // advance day
+        currentDay: Math.min(profile.currentDay + 1, 75),
         completedDays: Array.from(new Set([...profile.completedDays, day])),
       });
     }
-
-    // Placeholder: send reflection + status to AI coach API
+  
     console.log({ day, completed, reflection, profile });
-
+  
     goTo("dashboard");
   };
-
+  
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 px-4 py-6 flex justify-center">
       <div className="w-full max-w-md">

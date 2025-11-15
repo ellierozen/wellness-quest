@@ -34,6 +34,8 @@ const OnboardingScreen: React.FC<OnboardingProps> = ({ goTo, saveProfile }) => {
       sex,
       age: Number(age),
       goalWeightKg: Number(goalWeightKg),
+      currentDay: 1,
+      completedDays: [],
     });
 
     goTo("dashboard");

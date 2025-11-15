@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import type { Screen, Profile } from "../App";
+import {XP_PER_DAY} from "../components/XPBar";
+
 import Vine from "../assets/vines/vine.png";
 import Wall from "../assets/wall/wall.png";
 
@@ -32,14 +34,18 @@ const PostDayLogScreen: React.FC<PostDayLogProps> = ({
     }
 
     if (completed === "yes" && profile) {
+        setLastCompletedDay(day);
+        const alreadyCompleted = profile.completedDays.includes(day);
+  
+        const xpGain = alreadyCompleted ? 0 : XP_PER_DAY;
       // remember which day was just finished for the knight animation
-      setLastCompletedDay(day);
 
       // advance the quest progress
       setProfile({
         ...profile,
         currentDay: Math.min(profile.currentDay + 1, 75),
         completedDays: Array.from(new Set([...profile.completedDays, day])),
+        totalXP: profile.totalXP + xpGain,
       });
     }
 

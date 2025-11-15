@@ -29,6 +29,7 @@ export type Profile = {
 
   currentDay: number;
   completedDays: number[];
+  totalXP: number;
 };
 
 function App() {

@@ -1,12 +1,12 @@
 import React from "react";
 import type { Screen, Profile } from "../App";
-
+import LevelProgression from "../components/LevelProgression"; // import your new component
 type ScreenSetter = React.Dispatch<React.SetStateAction<Screen>>;
 
 interface DashboardProps {
   goTo: ScreenSetter;
   selectDay: (day: number) => void;
-  profile: Profile | null; // <-- this fixes the TS error
+  profile: Profile | null;
 }
 
 export default function DashboardScreen({
@@ -14,8 +14,9 @@ export default function DashboardScreen({
   selectDay,
   profile,
 }: DashboardProps) {
-  // For now just 5 days as placeholder; change to 75 later if you want
-  const days = Array.from({ length: 5 }, (_, i) => i + 1);
+  const totalDays = 75;
+  const currentDay = profile?.currentDay || 12; // use profile.currentDay if available
+  const completedDays = profile?.completedDays || []; // array of fully completed days
 
   const adventurerName = profile?.name || "Adventurer";
   const challengeLabel =
@@ -24,6 +25,12 @@ export default function DashboardScreen({
       : profile?.challengeLevel === "medium"
       ? "Blade Path"
       : "Grove Path";
+
+  const handleDayClick = (day: number) => {
+    selectDay(day);
+    if (day === currentDay) goTo("dayDetail");
+    else if (day < currentDay) goTo("postDayLog");
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-black px-4 py-6 flex justify-center">
@@ -34,78 +41,46 @@ export default function DashboardScreen({
             Adventurer Dashboard
           </p>
           <h1 className="mt-1 text-2xl font-bold text-slate-50 flex items-center gap-2">
-            Welcome, {adventurerName}
-            <span className="text-lg">🗡️</span>
+            Welcome, {adventurerName} <span className="text-lg">🗡️</span>
           </h1>
           <p className="mt-1 text-sm text-slate-300">
             Current quest route:{" "}
-            <span className="font-semibold text-violet-300">
-              {challengeLabel}
-            </span>
+            <span className="font-semibold text-violet-300">{challengeLabel}</span>
           </p>
         </header>
 
-        {/* XP + Level (placeholder for now) */}
+        {/* XP + Level (placeholder) */}
         <section className="mb-4 rounded-xl border border-slate-700/70 bg-slate-900/80 p-4 shadow-lg">
           <div className="flex items-center justify-between mb-2">
             <div>
-              <p className="text-xs text-slate-400 uppercase tracking-wide">
-                Guild Rank
-              </p>
+              <p className="text-xs text-slate-400 uppercase tracking-wide">Guild Rank</p>
               <p className="text-sm font-semibold text-slate-100">
                 Level 3 • “Habit Explorer”
               </p>
             </div>
             <div className="text-right">
               <p className="text-xs text-slate-400">Total XP</p>
-              <p className="text-sm font-semibold text-emerald-300">
-                100 XP
-              </p>
+              <p className="text-sm font-semibold text-emerald-300">100 XP</p>
             </div>
           </div>
-          {/* XP bar */}
           <div className="h-2 w-full rounded-full bg-slate-800 overflow-hidden">
             <div
               className="h-full w-1/3 rounded-full bg-gradient-to-r from-emerald-400 via-indigo-400 to-violet-500"
               aria-hidden
             />
           </div>
-          <p className="mt-1 text-[11px] text-slate-400">
-            100 / 300 XP to next rank.
-          </p>
+          <p className="mt-1 text-[11px] text-slate-400">100 / 300 XP to next rank.</p>
         </section>
 
-        {/* Day selector */}
+        {/* PVZ-style Level progression */}
         <section className="mb-4 rounded-xl border border-slate-700/70 bg-slate-900/80 p-4 shadow-lg">
-          <div className="flex items-center justify-between mb-2">
-            <h2 className="text-sm font-semibold text-slate-100">
-              Quest Log • Days
-            </h2>
-            <span className="text-[11px] text-slate-400">
-              Showing {days.length} days (placeholder)
-            </span>
-          </div>
-          <div className="grid grid-cols-3 gap-2 mt-2">
-            {days.map((day) => (
-              <button
-                key={day}
-                onClick={() => {
-                  selectDay(day);
-                  goTo("dayDetail");
-                }}
-                className="rounded-lg border border-slate-700 bg-slate-900/90 px-3 py-3 text-xs text-slate-100 hover:border-violet-400 hover:bg-slate-800 transition flex flex-col items-center gap-1"
-              >
-                <span className="text-[10px] uppercase tracking-wide text-slate-400">
-                  Day
-                </span>
-                <span className="text-base font-semibold">{day}</span>
-                {/* placeholder status */}
-                <span className="text-[10px] text-emerald-300">
-                  • In Progress
-                </span>
-              </button>
-            ))}
-          </div>
+          <h2 className="text-sm font-semibold text-slate-100 mb-2">Quest Log • Days</h2>
+          <LevelProgression
+            currentDay={currentDay}
+            totalDays={totalDays}
+            completedDays={completedDays}
+            goToDay={handleDayClick}
+          />
         </section>
 
         {/* Bottom buttons */}
@@ -118,10 +93,7 @@ export default function DashboardScreen({
           </button>
 
           <button
-            onClick={() => {
-              // later can be "goTo('aiCoach')" if you add that screen
-              alert("AI Coach screen coming soon ⚔️");
-            }}
+            onClick={() => alert("AI Coach screen coming soon ⚔️")}
             className="w-full rounded-full bg-gradient-to-r from-violet-500 via-indigo-500 to-emerald-500 px-4 py-2 text-sm font-semibold text-slate-50 shadow-[0_10px_25px_rgba(79,70,229,0.7)] hover:brightness-110 transition"
           >
             Consult the Guild Coach 🤖

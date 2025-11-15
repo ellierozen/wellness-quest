@@ -1,7 +1,6 @@
 import React from "react";
 import type { Screen, Profile } from "../App";
-
-
+import LevelProgression from "../components/LevelProgression"; // import your new component
 type ScreenSetter = React.Dispatch<React.SetStateAction<Screen>>;
 
 interface DashboardProps {

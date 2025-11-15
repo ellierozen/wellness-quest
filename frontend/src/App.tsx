@@ -1,45 +1,81 @@
-import { useState } from 'react'
+import { useState } from "react";
 import OnboardingScreen from "./screens/OnboardingScreen";
 import DashboardScreen from "./screens/DashboardScreen";
 import StatsScreen from "./screens/StatsScreen";
 import DayDetailScreen from "./screens/DayDetailScreen";
 import PostDayLogScreen from "./screens/PostDayLogScreen";
 
-function App() {
-  type Screen =
-    | "onboarding"
-    | "dashboard"
-    | "stats"
-    | "dayDetail"
-    | "postDayLog";
+// Which screen is visible
+export type Screen =
+  | "onboarding"
+  | "dashboard"
+  | "stats"
+  | "dayDetail"
+  | "postDayLog";
 
+// Difficulty options
+export type ChallengeLevel = "soft" | "medium" | "hard";
+
+// Profile data we collect on onboarding
+export type Profile = {
+  name?: string;
+  challengeLevel: ChallengeLevel;
+  dietType: string;
+  heightCm: number;
+  weightKg: number;
+  sex: "male" | "female" | "other";
+  age: number;
+  goalWeightKg: number;
+};
+
+function App() {
   const [currentScreen, setCurrentScreen] = useState<Screen>("onboarding");
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
+
+  // store the user profile here so ALL screens can use it
+  const [profile, setProfile] = useState<Profile | null>(null);
 
   return (
     <div className="App">
       {currentScreen === "onboarding" && (
-        <OnboardingScreen goTo={setCurrentScreen} />
+        <OnboardingScreen
+          goTo={setCurrentScreen}
+          saveProfile={setProfile}
+        />
       )}
 
       {currentScreen === "dashboard" && (
         <DashboardScreen
           goTo={setCurrentScreen}
           selectDay={setSelectedDay}
+          profile={profile}
         />
       )}
 
-      {currentScreen === "stats" && <StatsScreen goTo={setCurrentScreen} />}
+      {currentScreen === "stats" && (
+        <StatsScreen
+          goTo={setCurrentScreen}
+          profile={profile}
+        />
+      )}
 
       {currentScreen === "dayDetail" && selectedDay !== null && (
-        <DayDetailScreen goTo={setCurrentScreen} day={selectedDay} />
+        <DayDetailScreen
+          goTo={setCurrentScreen}
+          day={selectedDay}
+          profile={profile}
+        />
       )}
 
       {currentScreen === "postDayLog" && selectedDay !== null && (
-        <PostDayLogScreen goTo={setCurrentScreen} day={selectedDay} />
+        <PostDayLogScreen
+          goTo={setCurrentScreen}
+          day={selectedDay}
+          profile={profile}
+        />
       )}
     </div>
   );
 }
 
-export default App
+export default App;

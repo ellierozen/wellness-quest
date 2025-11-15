@@ -1,40 +1,133 @@
 import React from "react";
+import type { Screen, Profile } from "../App";
 
-type ScreenSetter = React.Dispatch<React.SetStateAction<"onboarding" | "dashboard" | "stats" | "dayDetail" | "postDayLog">>;
+type ScreenSetter = React.Dispatch<React.SetStateAction<Screen>>;
 
 interface DashboardProps {
   goTo: ScreenSetter;
   selectDay: (day: number) => void;
+  profile: Profile | null; // <-- this fixes the TS error
 }
 
-export default function DashboardScreen({ goTo, selectDay }: DashboardProps) {
-  const days = Array.from({ length: 5 }, (_, i) => i + 1); // placeholder 5 days
+export default function DashboardScreen({
+  goTo,
+  selectDay,
+  profile,
+}: DashboardProps) {
+  // For now just 5 days as placeholder; change to 75 later if you want
+  const days = Array.from({ length: 5 }, (_, i) => i + 1);
+
+  const adventurerName = profile?.name || "Adventurer";
+  const challengeLabel =
+    profile?.challengeLevel === "hard"
+      ? "Dragon Path"
+      : profile?.challengeLevel === "medium"
+      ? "Blade Path"
+      : "Grove Path";
 
   return (
-    <div style={{ padding: 20 }}>
-      <h1>Dashboard</h1>
-      <p>Total XP: 100 (placeholder)</p>
-      <p>Level: Medium</p>
+    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-black px-4 py-6 flex justify-center">
+      <div className="w-full max-w-md">
+        {/* Header */}
+        <header className="mb-4">
+          <p className="text-xs uppercase tracking-[0.18em] text-slate-400">
+            Adventurer Dashboard
+          </p>
+          <h1 className="mt-1 text-2xl font-bold text-slate-50 flex items-center gap-2">
+            Welcome, {adventurerName}
+            <span className="text-lg">🗡️</span>
+          </h1>
+          <p className="mt-1 text-sm text-slate-300">
+            Current quest route:{" "}
+            <span className="font-semibold text-violet-300">
+              {challengeLabel}
+            </span>
+          </p>
+        </header>
 
-      <h2>Pick a Day:</h2>
-      <ul>
-        {days.map((day) => (
-          <li key={day}>
-            <button
-              onClick={() => {
-                selectDay(day);
-                goTo("dayDetail");
-              }}
-            >
-              Day {day}
-            </button>
-          </li>
-        ))}
-      </ul>
+        {/* XP + Level (placeholder for now) */}
+        <section className="mb-4 rounded-xl border border-slate-700/70 bg-slate-900/80 p-4 shadow-lg">
+          <div className="flex items-center justify-between mb-2">
+            <div>
+              <p className="text-xs text-slate-400 uppercase tracking-wide">
+                Guild Rank
+              </p>
+              <p className="text-sm font-semibold text-slate-100">
+                Level 3 • “Habit Explorer”
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="text-xs text-slate-400">Total XP</p>
+              <p className="text-sm font-semibold text-emerald-300">
+                100 XP
+              </p>
+            </div>
+          </div>
+          {/* XP bar */}
+          <div className="h-2 w-full rounded-full bg-slate-800 overflow-hidden">
+            <div
+              className="h-full w-1/3 rounded-full bg-gradient-to-r from-emerald-400 via-indigo-400 to-violet-500"
+              aria-hidden
+            />
+          </div>
+          <p className="mt-1 text-[11px] text-slate-400">
+            100 / 300 XP to next rank.
+          </p>
+        </section>
 
-      <button style={{ marginTop: 20 }} onClick={() => goTo("stats")}>
-        View Overall Stats
-      </button>
+        {/* Day selector */}
+        <section className="mb-4 rounded-xl border border-slate-700/70 bg-slate-900/80 p-4 shadow-lg">
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-sm font-semibold text-slate-100">
+              Quest Log • Days
+            </h2>
+            <span className="text-[11px] text-slate-400">
+              Showing {days.length} days (placeholder)
+            </span>
+          </div>
+          <div className="grid grid-cols-3 gap-2 mt-2">
+            {days.map((day) => (
+              <button
+                key={day}
+                onClick={() => {
+                  selectDay(day);
+                  goTo("dayDetail");
+                }}
+                className="rounded-lg border border-slate-700 bg-slate-900/90 px-3 py-3 text-xs text-slate-100 hover:border-violet-400 hover:bg-slate-800 transition flex flex-col items-center gap-1"
+              >
+                <span className="text-[10px] uppercase tracking-wide text-slate-400">
+                  Day
+                </span>
+                <span className="text-base font-semibold">{day}</span>
+                {/* placeholder status */}
+                <span className="text-[10px] text-emerald-300">
+                  • In Progress
+                </span>
+              </button>
+            ))}
+          </div>
+        </section>
+
+        {/* Bottom buttons */}
+        <section className="space-y-2">
+          <button
+            onClick={() => goTo("stats")}
+            className="w-full rounded-full border border-slate-700 bg-slate-900/80 px-4 py-2 text-sm font-medium text-slate-100 hover:border-violet-400 hover:bg-slate-800 transition"
+          >
+            View Overall Stats 📊
+          </button>
+
+          <button
+            onClick={() => {
+              // later can be "goTo('aiCoach')" if you add that screen
+              alert("AI Coach screen coming soon ⚔️");
+            }}
+            className="w-full rounded-full bg-gradient-to-r from-violet-500 via-indigo-500 to-emerald-500 px-4 py-2 text-sm font-semibold text-slate-50 shadow-[0_10px_25px_rgba(79,70,229,0.7)] hover:brightness-110 transition"
+          >
+            Consult the Guild Coach 🤖
+          </button>
+        </section>
+      </div>
     </div>
   );
 }

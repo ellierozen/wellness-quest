@@ -59,7 +59,7 @@ export default function LevelProgression({
                 alt={`Day ${day}`}
                 style={{
                   width: 1000,  // larger castle
-                  height: 150,
+                  height: 250,
                   filter: isCompleted ? "grayscale(0%)" : "grayscale(70%)",
                 }}
               />
@@ -71,10 +71,11 @@ export default function LevelProgression({
                   alt="Runner"
                   style={{
                     position: "absolute",
-                    top: -20,
-                    left: 0,
-                    width: 30,
-                    height: 30,
+                    top: 175,
+                    left: -50,
+                    width: 100,
+                    height: 100,
+                    transform: "scaleX(-1)",
                   }}
                 />
               )}
@@ -84,7 +85,7 @@ export default function LevelProgression({
             {index !== totalDays - 1 && (
               <div
                 style={{
-                  width: 100, // longer trail
+                  width: 500, // longer trail
                   height: 6,
                   backgroundColor: isCompleted ? "green" : "#ccc",
                   margin: "0 10px",

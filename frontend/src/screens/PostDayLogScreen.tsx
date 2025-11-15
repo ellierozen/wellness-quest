@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import type { Screen, Profile } from "../App";
+import {XP_PER_DAY} from "../components/XPBar";
+
 
 type ScreenSetter = React.Dispatch<React.SetStateAction<Screen>>;
 
@@ -9,14 +11,6 @@ interface PostDayLogProps {
   profile: Profile | null;
   setProfile: React.Dispatch<React.SetStateAction<Profile | null>>;
   setLastCompletedDay: React.Dispatch<React.SetStateAction<number | null>>;
-}
-
-interface PostDayLogProps {
-  goTo: ScreenSetter;
-  day: number;
-  profile: Profile | null;
-  setProfile: React.Dispatch<React.SetStateAction<Profile | null>>;
-  setLastCompletedDay: React.Dispatch<React.SetStateAction<number | null>>; // 👈 NEW
 }
 
 const PostDayLogScreen: React.FC<PostDayLogProps> = ({
@@ -39,14 +33,16 @@ const PostDayLogScreen: React.FC<PostDayLogProps> = ({
     }
   
     if (completed === "yes" && profile) {
-      // 👉 remember which day was just finished
-      setLastCompletedDay(day);
+        setLastCompletedDay(day);
+        const alreadyCompleted = profile.completedDays.includes(day);
   
+        const xpGain = alreadyCompleted ? 0 : XP_PER_DAY;
       // advance the quest progress
       setProfile({
         ...profile,
         currentDay: Math.min(profile.currentDay + 1, 75),
         completedDays: Array.from(new Set([...profile.completedDays, day])),
+        totalXP: profile.totalXP + xpGain,
       });
     }
   

@@ -38,6 +38,7 @@ const OnboardingScreen: React.FC<OnboardingProps> = ({ goTo, saveProfile }) => {
       goalWeightKg: Number(goalWeightKg),
       currentDay: 1,
       completedDays: [],
+      totalXP: 0,
     });
 
     goTo("dashboard");

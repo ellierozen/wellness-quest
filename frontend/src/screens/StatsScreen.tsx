@@ -38,7 +38,6 @@ const StatsScreen: React.FC<StatsProps> = ({ goTo, profile }) => {
             </p>
             <p className="text-sm text-slate-100">
               Completion rate: <span className="font-semibold">4%</span>{" "}
-              (placeholder)
             </p>
           </div>
 

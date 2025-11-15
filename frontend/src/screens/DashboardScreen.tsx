@@ -1,6 +1,8 @@
 import React from "react";
 import type { Screen, Profile } from "../App";
 import LevelProgression from "../components/LevelProgression";
+import XPBar from "../components/XPBar";
+
 import Vine from "../assets/vines/vine.png";
 import Wall from "../assets/wall/wall.png";
 
@@ -86,35 +88,11 @@ export default function DashboardScreen({
           </header>
 
           {/* XP + Level */}
-          <section className="mb-3 rounded-lg border border-stone-700/60 bg-[rgba(60,45,30,0.7)] p-3 sm:p-4 shadow-[0_0_18px_rgba(0,0,0,0.6)]">
-            <div className="flex items-center justify-between mb-2">
-              <div>
-                <p className="text-[10px] text-emerald-200/80 uppercase tracking-wide font-cinzel">
-                  Guild Rank
-                </p>
-                <p className="text-xs sm:text-sm font-medium text-stone-100 font-medieval">
-                  Level 3 • “Habit Explorer”
-                </p>
-              </div>
-              <div className="text-right">
-                <p className="text-[10px] text-emerald-200/80 font-cinzel">
-                  Total XP
-                </p>
-                <p className="text-xs sm:text-sm font-semibold text-emerald-300 font-medieval">
-                  100 XP
-                </p>
-              </div>
-            </div>
-            <div className="h-2 w-full rounded-full bg-[rgba(30,20,15,0.9)] overflow-hidden">
-              <div
-                className="h-full w-1/3 rounded-full bg-gradient-to-r from-emerald-400 via-emerald-300 to-emerald-500"
-                aria-hidden
-              />
-            </div>
-            <p className="mt-1 text-[10px] text-stone-300 font-medieval">
-              100 / 300 XP until your next rank.
-            </p>
-          </section>
+            <section className="mb-4 rounded-xl border border-slate-700/70 bg-slate-900/80 p-4 shadow-lg">
+              {profile && (
+                <XPBar totalXP={profile.totalXP} />
+              )}
+            </section>
 
           {/* Quest Log / Level Progression */}
           <section className="mb-4 rounded-lg border border-stone-700/60 bg-[rgba(60,45,30,0.7)] p-3 sm:p-4 shadow-[0_0_18px_rgba(0,0,0,0.6)]">

@@ -26,6 +26,9 @@ export type Profile = {
   sex: "male" | "female" | "other";
   age: number;
   goalWeightKg: number;
+
+  currentDay: number;
+  completedDays: number[];
 };
 
 function App() {
@@ -72,6 +75,7 @@ function App() {
           goTo={setCurrentScreen}
           day={selectedDay}
           profile={profile}
+          setProfile={setProfile}
         />
       )}
     </div>

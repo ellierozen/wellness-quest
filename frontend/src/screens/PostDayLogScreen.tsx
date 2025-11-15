@@ -1,4 +1,3 @@
-// src/screens/PostDayLogScreen.tsx
 import React, { useState } from "react";
 import type { Screen, Profile } from "../App";
 
@@ -8,12 +7,14 @@ interface PostDayLogProps {
   goTo: ScreenSetter;
   day: number;
   profile: Profile | null;
+  setProfile: React.Dispatch<React.SetStateAction<Profile | null>>; // add this prop
 }
 
 const PostDayLogScreen: React.FC<PostDayLogProps> = ({
   goTo,
   day,
   profile,
+  setProfile,
 }) => {
   const [completed, setCompleted] = useState<"yes" | "no" | "">("");
   const [reflection, setReflection] = useState("");
@@ -26,15 +27,18 @@ const PostDayLogScreen: React.FC<PostDayLogProps> = ({
       return;
     }
 
-    // later: send reflection + status to AI coach API
-    console.log({
-      day,
-      completed,
-      reflection,
-      profile,
-    });
+    // Update profile progress if fully completed
+    if (completed === "yes" && profile) {
+      setProfile({
+        ...profile,
+        currentDay: Math.min(profile.currentDay + 1, 75), // advance day
+        completedDays: Array.from(new Set([...profile.completedDays, day])),
+      });
+    }
 
-    alert("Log saved (placeholder) – AI coach coming soon 🤖");
+    // Placeholder: send reflection + status to AI coach API
+    console.log({ day, completed, reflection, profile });
+
     goTo("dashboard");
   };
 
@@ -48,9 +52,7 @@ const PostDayLogScreen: React.FC<PostDayLogProps> = ({
           ← Back to day rules
         </button>
 
-        <h1 className="text-2xl font-bold mb-1">
-          Day {day} • Post-Quest Log
-        </h1>
+        <h1 className="text-2xl font-bold mb-1">Day {day} • Post-Quest Log</h1>
         <p className="text-sm text-slate-300 mb-4">
           How did today’s quest go, {adventurerName}?
         </p>
@@ -90,9 +92,7 @@ const PostDayLogScreen: React.FC<PostDayLogProps> = ({
 
         {/* Reflection */}
         <div className="mb-5">
-          <p className="text-xs font-medium text-slate-300 mb-1">
-            Reflection (optional)
-          </p>
+          <p className="text-xs font-medium text-slate-300 mb-1">Reflection (optional)</p>
           <textarea
             value={reflection}
             onChange={(e) => setReflection(e.target.value)}

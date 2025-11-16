@@ -1,0 +1,151 @@
+import google.generativeai as genai
+import json
+from typing import List, Dict
+
+model = genai.GenerativeModel("gemini-2.5-flash")
+
+def generate_daily_meal_plan(target_calories: int, goal: str, diet: str, meals_per_day: int = 3):
+    """
+    Generate a daily meal plan using Gemini with guaranteed JSON output.
+    """
+    schema = {
+        "type": "object",
+        "properties": {
+            "meals": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "name": {"type": "string"},
+                        "calories": {"type": "integer"},
+                        "items": {
+                            "type": "array",
+                            "items": {"type": "string"}
+                        }
+                    },
+                    "required": ["name", "calories", "items"]
+                }
+            },
+            "shopping_list": {
+                "type": "array",
+                "items": {"type": "string"}
+            }
+        },
+        "required": ["meals", "shopping_list"]
+    }
+
+    prompt = f"""
+You are a helpful nutrition assistant. Generate a daily meal plan
+for a user with the following profile:
+
+- Target calories: {target_calories}
+- Goal: {goal}
+- Diet: {diet}
+- Preferred meals per day: {meals_per_day}
+
+Return JSON that matches the schema EXACTLY.
+Do NOT include commentary, markdown, or any explanations.
+
+""" 
+    try:
+        response = model.generate_content(
+            prompt,
+            config = types.GenerateContentConfig(
+                temperature=0.2,
+                max_output_tokens=4096,
+                # *** SPECIFY JSON OUTPUT AND SCHEMA HERE ***
+                response_mime_type="application/json", 
+                response_schema=schema 
+            )
+        )
+
+        return response.text
+
+    except Exception as e:
+        # LOG THE ERROR TO THE TERMINAL
+        print(f"\n--- GEMINI API ERROR ---")
+        print(f"Failed to generate structured content for daily meal plan. Error: {e}")
+        print("--- END GEMINI ERROR ---\n")
+        
+        return {"meals": [], "shopping_list": []}
+
+
+def generate_weekly_meal_plan(target_calories: int, goal: str, diet: str, meals_per_day: int = 3):
+    """
+    Generates a full 7-day meal plan and a consolidated shopping list in a single, efficient call.
+    Returns a JSON string on success, or a dictionary on API failure.
+    """
+    # Define the complex JSON schema for the entire week
+    WEEKLY_SCHEMA = {
+        "type": "object",
+        "properties": {
+            "days": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "day_index": {"type": "integer"},
+                        "label": {"type": "string"},
+                        "meals": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "name": {"type": "string"},
+                                    "calories": {"type": "integer"},
+                                    "items": {
+                                        "type": "array",
+                                        "items": {"type": "string"}
+                                    }
+                                },
+                                "required": ["name", "calories", "items"]
+                            }
+                        }
+                    },
+                    "required": ["day_index", "label", "meals"]
+                }
+            },
+            "shopping_list": {
+                "type": "array",
+                "items": {"type": "string"},
+                "description": "A consolidated, alphabetized, and de-duplicated shopping list for the entire week's meals."
+            }
+        },
+        "required": ["days", "shopping_list"]
+    }
+
+    prompt = f"""
+You are a professional dietitian. Generate a varied and detailed 7-day meal plan
+for a user with the following goals and preferences:
+
+- Target calories per day: {target_calories}
+- Health Goal: {goal}
+- Diet Restriction: {diet}
+- Meals per day: {meals_per_day}
+
+Ensure variety across the week. For each of the 7 days (day_index 1 through 7),
+provide a meal plan. Also, generate one consolidated, alphabetized, and de-duplicated
+shopping list for ALL 7 days.
+
+Return JSON that matches the schema EXACTLY.
+"""
+    try:
+        response = model.generate_content(
+            prompt,
+            config=types.GenerateContentConfig(
+                temperature=0.2,
+                max_output_tokens=4096, # Increased tokens for a full week plan
+                response_mime_type="application/json",
+                response_schema=WEEKLY_SCHEMA
+            )
+        )
+        # On success, return the JSON string
+        return response.text
+
+    except Exception as e:
+        print(f"\n--- GEMINI WEEKLY API ERROR ---")
+        print(f"Failed to generate structured content for weekly meal plan. Error: {e}")
+        print("--- END GEMINI ERROR ---\n")
+
+        # On failure, return an empty dictionary as a fallback
+        return {"days": [], "shopping_list": []}

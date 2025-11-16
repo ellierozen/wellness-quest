@@ -1,7 +1,5 @@
 import React, { useState } from "react";
 import type { Screen, Profile } from "../App";
-import {XP_PER_DAY} from "../components/XPBar";
-
 import Vine from "../assets/vines/vine.png";
 import Wall from "../assets/wall/wall.png";
 
@@ -34,24 +32,27 @@ const PostDayLogScreen: React.FC<PostDayLogProps> = ({
     }
 
     if (completed === "yes" && profile) {
-        setLastCompletedDay(day);
-        const alreadyCompleted = profile.completedDays.includes(day);
-  
-        const xpGain = alreadyCompleted ? 0 : XP_PER_DAY;
-      // remember which day was just finished for the knight animation
+      // run succeeded -> advance progress + animate knight
+      setLastCompletedDay(day);
 
-      // advance the quest progress
       setProfile({
         ...profile,
         currentDay: Math.min(profile.currentDay + 1, 75),
         completedDays: Array.from(new Set([...profile.completedDays, day])),
-        totalXP: profile.totalXP + xpGain,
       });
+
+      console.log({ day, completed, reflection, profile });
+      goTo("dashboard");
+      return;
     }
 
-    console.log({ day, completed, reflection, profile });
-
-    goTo("dashboard");
+    if (completed === "no") {
+      // run failed -> hard reset flow
+      setLastCompletedDay(null); // no knight animation
+      console.log({ day, completed, reflection, profile });
+      goTo("failedRun");
+      return;
+    }
   };
 
   return (
@@ -148,7 +149,7 @@ const PostDayLogScreen: React.FC<PostDayLogProps> = ({
             <textarea
               value={reflection}
               onChange={(e) => setReflection(e.target.value)}
-              placeholder="What felt easy? What was hard? Anything you want your future self (or the guild coach) to know."
+              placeholder="What tripped you up today? What will you change next attempt?"
               rows={4}
               className="
                 w-full rounded-lg
@@ -181,7 +182,7 @@ const PostDayLogScreen: React.FC<PostDayLogProps> = ({
               font-cinzel
             "
           >
-            Submit log & return to guild 🏰
+            Submit log 🏰
           </button>
         </div>
 

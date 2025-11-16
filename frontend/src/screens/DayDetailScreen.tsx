@@ -6,16 +6,37 @@ import Wall from "../assets/wall/wall.png";
 
 type ScreenSetter = React.Dispatch<React.SetStateAction<Screen>>;
 
+export interface Meal {
+  type: "Breakfast" | "Lunch" | "Dinner";
+  title: string;
+  description?: string;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fats: number;
+}
+
+export interface DayMealPlan {
+  day: number;
+  totalCalories: number;
+  totalProtein: number;
+  totalCarbs: number;
+  totalFats: number;
+  meals: Meal[];
+}
+
 interface DayDetailProps {
   goTo: ScreenSetter;
   day: number;
   profile: Profile | null;
+  mealPlan?: DayMealPlan | null;
 }
 
 const DayDetailScreen: React.FC<DayDetailProps> = ({
   goTo,
   day,
   profile,
+  mealPlan,
 }) => {
   const challenge = profile?.challengeLevel || "soft";
 
@@ -62,7 +83,7 @@ const DayDetailScreen: React.FC<DayDetailProps> = ({
           sm:scale-100
         "
       >
-        {/* MAIN CARD – same shell as onboarding/dashboard */}
+        {/* MAIN CARD */}
         <div
           className="
             relative z-10
@@ -121,6 +142,98 @@ const DayDetailScreen: React.FC<DayDetailProps> = ({
             ))}
           </ul>
 
+          {/* Guild Meal Plan */}
+          <div className="mb-5">
+            <div className="mb-2 flex items-center justify-between">
+              <h2 className="text-sm sm:text-base font-cinzel text-emerald-200">
+                Guild Meal Plan 🍽️
+              </h2>
+              <span className="text-[11px] text-emerald-300/80 font-medieval">
+                Crafted from your stats
+              </span>
+            </div>
+
+            {mealPlan ? (
+              <>
+                {/* Overall macros */}
+                <div className="mb-3 grid grid-cols-2 gap-2 text-[11px] sm:text-xs">
+                  <div className="rounded-md border border-stone-700/70 bg-[rgba(60,45,30,0.9)] px-2 py-1.5">
+                    <p className="text-[10px] uppercase tracking-[0.12em] text-stone-400 font-cinzel">
+                      Calories
+                    </p>
+                    <p className="text-sm font-semibold text-emerald-200 font-medieval">
+                      {mealPlan.totalCalories.toLocaleString()} kcal
+                    </p>
+                  </div>
+                  <div className="rounded-md border border-stone-700/70 bg-[rgba(60,45,30,0.9)] px-2 py-1.5">
+                    <p className="text-[10px] uppercase tracking-[0.12em] text-stone-400 font-cinzel">
+                      Protein
+                    </p>
+                    <p className="text-sm font-semibold text-emerald-200 font-medieval">
+                      {mealPlan.totalProtein} g
+                    </p>
+                  </div>
+                  <div className="rounded-md border border-stone-700/70 bg-[rgba(60,45,30,0.9)] px-2 py-1.5">
+                    <p className="text-[10px] uppercase tracking-[0.12em] text-stone-400 font-cinzel">
+                      Carbs
+                    </p>
+                    <p className="text-sm font-semibold text-emerald-200 font-medieval">
+                      {mealPlan.totalCarbs} g
+                    </p>
+                  </div>
+                  <div className="rounded-md border border-stone-700/70 bg-[rgba(60,45,30,0.9)] px-2 py-1.5">
+                    <p className="text-[10px] uppercase tracking-[0.12em] text-stone-400 font-cinzel">
+                      Fats
+                    </p>
+                    <p className="text-sm font-semibold text-emerald-200 font-medieval">
+                      {mealPlan.totalFats} g
+                    </p>
+                  </div>
+                </div>
+
+                {/* Meals list */}
+                <div className="space-y-2">
+                  {mealPlan.meals.map((meal, idx) => (
+                    <div
+                      key={idx}
+                      className="
+                        rounded-lg
+                        border border-stone-700/70
+                        bg-[rgba(60,45,30,0.9)]
+                        p-3
+                        text-[12px] sm:text-sm
+                        shadow-[0_0_15px_rgba(0,0,0,0.6)]
+                      "
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="font-cinzel text-emerald-200 text-sm">
+                          {meal.type}
+                        </p>
+                        <p className="text-[11px] text-stone-300 font-medieval">
+                          {meal.calories} kcal • {meal.protein}P / {meal.carbs}C /{" "}
+                          {meal.fats}F
+                        </p>
+                      </div>
+                      <p className="font-medieval text-stone-100">
+                        {meal.title}
+                      </p>
+                      {meal.description && (
+                        <p className="mt-1 text-[11px] text-stone-300">
+                          {meal.description}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <p className="text-[11px] text-stone-400 font-medieval">
+                The guild mage is still scribing today&apos;s meal scroll. 🍲
+                Connect the backend to feed in your Gemini meal plan here.
+              </p>
+            )}
+          </div>
+
           {/* CTA */}
           <button
             onClick={() => goTo("postDayLog")}
@@ -141,7 +254,7 @@ const DayDetailScreen: React.FC<DayDetailProps> = ({
           </button>
         </div>
 
-        {/* VINES – same positions as onboarding/dashboard */}
+        {/* VINES */}
         <img
           src={Vine}
           alt=""

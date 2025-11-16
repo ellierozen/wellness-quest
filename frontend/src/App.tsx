@@ -68,9 +68,10 @@ function App() {
 
       {currentScreen === "dayDetail" && selectedDay !== null && (
         <DayDetailScreen
-          goTo={setCurrentScreen}
-          day={selectedDay}
-          profile={profile}
+        goTo={setCurrentScreen}
+        day={selectedDay}
+        profile={profile}
+        //mealPlan={}
         />
       )}
 

@@ -1,3 +1,5 @@
+import json
+from pathlib import Path
 from enum import Enum
 from typing import List, Dict, Any
 
@@ -32,10 +34,9 @@ genai.configure(api_key = GEMINI_API_KEY)
 
 app = FastAPI()
 
-# TODO: update these to your real frontend URLs/ports
 origins = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
 ]
 
 app.add_middleware(
@@ -130,6 +131,43 @@ class DailyMealPlanResponse(BaseModel):
 user_profiles: Dict[str, Dict[str, Any]] = {}
 
 user_xp_log: Dict[str, Dict[str, int]] = {}
+
+
+STATE_FILE = Path("state.json")  # this will live in the backend folder (where you run uvicorn)
+
+
+def load_state() -> None:
+    """Load user_profiles and user_xp_log from state.json if it exists."""
+    global user_profiles, user_xp_log
+
+    if not STATE_FILE.exists():
+        return  # nothing to load yet
+
+    try:
+        with STATE_FILE.open("r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        # Be defensive in case the file is weird
+        user_profiles = data.get("user_profiles", {}) or {}
+        user_xp_log = data.get("user_xp_log", {}) or {}
+
+    except Exception as e:
+        print("Failed to load state.json:", e)
+        user_profiles = {}
+        user_xp_log = {}
+
+
+def save_state() -> None:
+    """Save user_profiles and user_xp_log to state.json."""
+    try:
+        data = {
+            "user_profiles": user_profiles,
+            "user_xp_log": user_xp_log,
+        }
+        with STATE_FILE.open("w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+    except Exception as e:
+        print("Failed to save state.json:", e)
 # ---------- Helper functions ----------
 
 def calculate_maintenance_calories(req: OnboardingRequest) -> int:
@@ -195,6 +233,7 @@ def add_xp(user_id: str, date: str, base_xp: int) -> XPResponse:
     if user_id not in user_xp_log:
         user_xp_log[user_id] = {}
     user_xp_log[user_id][date] = user_xp_log[user_id].get(date, 0) + xp_earned
+    save_state()
 
     return XPResponse(
         user_id=user_id,
@@ -221,6 +260,16 @@ def calculate_walk_xp(duration_minutes: int, distance_km: float, is_outdoor: boo
     return base
 
 # ---------- Routes ----------
+@app.on_event("startup")
+def on_startup():
+    load_state()
+    print("Loaded state from state.json (if it existed).")
+
+@app.on_event("shutdown")
+def on_shutdown():
+    save_state()
+    print("Saved state to state.json on shutdown.")
+
 
 @app.get("/health")
 def health():
@@ -254,6 +303,7 @@ def onboarding(req: OnboardingRequest):
         "xp_multiplier": xp_mult,
         "total_xp": 0,
     }
+    save_state()
 
     msg = (
         f"You're set up for a {req.challenge_level.value} challenge with "
@@ -287,15 +337,30 @@ def daily_meal_plan(req: DailyMealPlanRequest):
 
     target = profile["target_calories"]
 
-    meal_data = generate_daily_meal_plan(
+    meal_data_raw = generate_daily_meal_plan(
         target_calories=target,
         goal=profile["goal_type"],
         diet=profile["diet_type"],
         meals_per_day=profile["preferred_meals_per_day"]
     )
 
-    meals = [MealItem(**m) for m in meal_data.get("meals", [])]
-    shopping_list = meal_data.get("shopping_list", [])
+    # Check if the client failed and returned a dict instead of a string
+    if isinstance(meal_data_raw, dict):
+        # This handles the case where the try...except in gemini_client.py failed
+        meal_data = meal_data_raw
+    else:
+        # 2. If successful, parse the JSON string into a Python dictionary
+        try:
+            meal_data = json.loads(meal_data_raw)
+        except json.JSONDecodeError as e:
+            # Catch parsing errors if the model outputted invalid JSON
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to parse meal plan JSON from model. Error: {e}"
+            )
+
+    meals = [MealItem(**m) for m in meal_data["meals"]]
+    shopping_list = meal_data["shopping_list"]
 
     return DailyMealPlanResponse(
         user_id=req.user_id,
@@ -316,12 +381,23 @@ def weekly_meal_plan(req: WeeklyMealPlanRequest):
 
     target = profile["target_calories"]
 
-    week_plan_data = generate_weekly_meal_plan(
+    week_plan_data_raw = generate_weekly_meal_plan(
         target_calories=target,
         goal=profile["goal_type"],
         diet=profile["diet_type"],
         meals_per_day=profile["preferred_meals_per_day"]
     )
+
+    if isinstance(week_plan_data_raw, dict):
+        week_plan_data = week_plan_data_raw
+    else:
+        try:
+            week_plan_data = json.loads(week_plan_data_raw)
+        except json.JSONDecodeError as e:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to parse weekly plan JSON from model. Error: {e}"
+                )
 
     days: List[DayPlan] = []
     for d in week_plan_data["days"]:

@@ -1,12 +1,39 @@
-import json
 import google.generativeai as genai
-from models import MealItem
+import json
 from typing import List, Dict
-
 
 model = genai.GenerativeModel("gemini-2.5-flash")
 
 def generate_daily_meal_plan(target_calories: int, goal: str, diet: str, meals_per_day: int = 3):
+    """
+    Generate a daily meal plan using Gemini with guaranteed JSON output.
+    """
+    schema = {
+        "type": "object",
+        "properties": {
+            "meals": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "name": {"type": "string"},
+                        "calories": {"type": "integer"},
+                        "items": {
+                            "type": "array",
+                            "items": {"type": "string"}
+                        }
+                    },
+                    "required": ["name", "calories", "items"]
+                }
+            },
+            "shopping_list": {
+                "type": "array",
+                "items": {"type": "string"}
+            }
+        },
+        "required": ["meals", "shopping_list"]
+    }
+
     prompt = f"""
 You are a helpful nutrition assistant. Generate a daily meal plan
 for a user with the following profile:
@@ -16,98 +43,109 @@ for a user with the following profile:
 - Diet: {diet}
 - Preferred meals per day: {meals_per_day}
 
-Output ONLY valid JSON with this structure:
-{{
-  "meals": [
-    {{"name": "string", "calories": int, "items": ["string", "..."]}},
-    ...
-  ],
-  "shopping_list": ["string", "..."]
-}}
-No extra commentary, no markdown.
+Return JSON that matches the schema EXACTLY.
+Do NOT include commentary, markdown, or any explanations.
+
+""" 
+    try:
+        response = model.generate_content(
+            prompt,
+            config = types.GenerateContentConfig(
+                temperature=0.2,
+                max_output_tokens=4096,
+                # *** SPECIFY JSON OUTPUT AND SCHEMA HERE ***
+                response_mime_type="application/json", 
+                response_schema=schema 
+            )
+        )
+
+        return response.text
+
+    except Exception as e:
+        # LOG THE ERROR TO THE TERMINAL
+        print(f"\n--- GEMINI API ERROR ---")
+        print(f"Failed to generate structured content for daily meal plan. Error: {e}")
+        print("--- END GEMINI ERROR ---\n")
+        
+        return {"meals": [], "shopping_list": []}
+
+
+def generate_weekly_meal_plan(target_calories: int, goal: str, diet: str, meals_per_day: int = 3):
+    """
+    Generates a full 7-day meal plan and a consolidated shopping list in a single, efficient call.
+    Returns a JSON string on success, or a dictionary on API failure.
+    """
+    # Define the complex JSON schema for the entire week
+    WEEKLY_SCHEMA = {
+        "type": "object",
+        "properties": {
+            "days": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "day_index": {"type": "integer"},
+                        "label": {"type": "string"},
+                        "meals": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "name": {"type": "string"},
+                                    "calories": {"type": "integer"},
+                                    "items": {
+                                        "type": "array",
+                                        "items": {"type": "string"}
+                                    }
+                                },
+                                "required": ["name", "calories", "items"]
+                            }
+                        }
+                    },
+                    "required": ["day_index", "label", "meals"]
+                }
+            },
+            "shopping_list": {
+                "type": "array",
+                "items": {"type": "string"},
+                "description": "A consolidated, alphabetized, and de-duplicated shopping list for the entire week's meals."
+            }
+        },
+        "required": ["days", "shopping_list"]
+    }
+
+    prompt = f"""
+You are a professional dietitian. Generate a varied and detailed 7-day meal plan
+for a user with the following goals and preferences:
+
+- Target calories per day: {target_calories}
+- Health Goal: {goal}
+- Diet Restriction: {diet}
+- Meals per day: {meals_per_day}
+
+Ensure variety across the week. For each of the 7 days (day_index 1 through 7),
+provide a meal plan. Also, generate one consolidated, alphabetized, and de-duplicated
+shopping list for ALL 7 days.
+
+Return JSON that matches the schema EXACTLY.
 """
     try:
         response = model.generate_content(
             prompt,
-            generation_config={
-                "temperature": 0.3,
-                "max_output_tokens": 500,
-            },
+            config=types.GenerateContentConfig(
+                temperature=0.2,
+                max_output_tokens=4096, # Increased tokens for a full week plan
+                response_mime_type="application/json",
+                response_schema=WEEKLY_SCHEMA
+            )
         )
-
-        # ---- SAFER ACCESS TO TEXT ----
-        if not response.candidates:
-            raise ValueError("No candidates returned from Gemini")
-
-        cand = response.candidates[0]
-        print("Gemini finish_reason:", cand.finish_reason)
-
-        if not cand.content or not getattr(cand.content, "parts", None):
-            raise ValueError("Candidate has no content parts")
-
-        # Collect all text parts into one string
-        text_chunks = []
-        for part in cand.content.parts:
-            if hasattr(part, "text"):
-                text_chunks.append(part.text)
-
-        raw_text = "\n".join(text_chunks).strip()
-        print("RAW GEMINI TEXT:", raw_text)
-
-        # Strip ```json fences if present
-        cleaned = raw_text
-        if cleaned.startswith("```"):
-            lines = cleaned.splitlines()
-            inner_lines = [line for line in lines if not line.strip().startswith("```")]
-            cleaned = "\n".join(inner_lines).strip()
-
-        print("CLEANED TEXT BEFORE JSON PARSE:", cleaned)
-
-        result = json.loads(cleaned)
+        # On success, return the JSON string
+        return response.text
 
     except Exception as e:
-        print("Error parsing Gemini response:", e)
-        # Fallback: simple default
-        result = {
-            "meals": [
-                {"name": "Breakfast", "calories": int(target_calories * 0.25), "items": ["Oatmeal", "Berries"]},
-                {"name": "Lunch", "calories": int(target_calories * 0.35), "items": ["Grain bowl with veggies"]},
-                {"name": "Dinner", "calories": int(target_calories * 0.40), "items": ["Stir-fry with protein and vegetables"]},
-            ],
-            "shopping_list": ["Oats", "Berries", "Veggies", "Protein source", "Rice/Quinoa"]
-        }
+        print(f"\n--- GEMINI WEEKLY API ERROR ---")
+        print(f"Failed to generate structured content for weekly meal plan. Error: {e}")
+        print("--- END GEMINI ERROR ---\n")
 
-    return result
-
-
-def generate_weekly_meal_plan(target_calories: int, goal: str, diet: str, meals_per_day: int = 3):
-    from datetime import datetime, timedelta
-
-    days: List[Dict] = []
-    combined_shopping_list: List[str] = []
-
-    for i in range(7):
-        day_date = (datetime.today() + timedelta(days=i)).strftime("%Y-%m-%d")
-        daily_plan = generate_daily_meal_plan(
-            target_calories=target_calories,
-            goal=goal,
-            diet=diet,
-            meals_per_day=meals_per_day
-        )
-
-        # Add day info
-        days.append({
-            "day_index": i + 1,
-            "label": f"Day {i + 1}",
-            "meals": daily_plan.get("meals", [])
-        })
-
-        # Merge shopping lists without duplicates
-        for item in daily_plan.get("shopping_list", []):
-            if item not in combined_shopping_list:
-                combined_shopping_list.append(item)
-
-    return {
-        "days": days,
-        "shopping_list": combined_shopping_list
-    }
+        # On failure, return an empty dictionary as a fallback
+        return {"days": [], "shopping_list": []}

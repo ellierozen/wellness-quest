@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import type { Screen, Profile, ChallengeLevel } from "../App";
+import { API_BASE_URL } from "../config";
+
 import Vine from "../assets/vines/vine.png";
 import Wall from "../assets/wall/wall.png";
 
@@ -14,34 +16,94 @@ interface OnboardingProps {
 const OnboardingScreen: React.FC<OnboardingProps> = ({ goTo, saveProfile }) => {
   const [name, setName] = useState("");
   const [challengeLevel, setChallengeLevel] = useState<ChallengeLevel>("soft");
-  const [dietType, setDietType] = useState("Mediterranean");
+  const [dietType, setDietType] = useState("mediterranean");
   const [heightCm, setHeightCm] = useState("");
   const [weightKg, setWeightKg] = useState("");
   const [sex, setSex] = useState<"male" | "female" | "other">("other");
   const [age, setAge] = useState("");
   const [goalWeightKg, setGoalWeightKg] = useState("");
+  const [goalType, setGoalType] = useState<
+    "weight_loss" | "maintenance" | "weight_gain"
+  >("weight_loss");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (!heightCm || !weightKg || !age || !goalWeightKg) {
       alert("The guild needs your stats, adventurer! ⚔️");
       return;
     }
 
-    saveProfile({
-      name: name || undefined,
-      challengeLevel,
-      dietType,
-      heightCm: Number(heightCm),
-      weightKg: Number(weightKg),
-      sex,
-      age: Number(age),
-      goalWeightKg: Number(goalWeightKg),
-      currentDay: 1,
-      completedDays: [],
-      totalXP: 0,
-    });
+    setLoading(true);
+    setError(null);
 
-    goTo("dashboard");
+    let storedId = localStorage.getItem("wq_user_id");
+    if (!storedId) {
+      storedId = `user-${crypto.randomUUID()}`;
+      localStorage.setItem("wq_user_id", storedId);
+    }
+
+    const payload = {
+      user_id: storedId,
+      challenge_level: challengeLevel,
+      diet_type: dietType,
+      goal_type: goalType,
+      current_weight_kg: Number(weightKg),
+      goal_weight_kg: Number(goalWeightKg),
+      height_cm: Number(heightCm),
+      age: Number(age),
+      sex,
+      preferred_meals_per_day: 3,
+    };
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/onboarding`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        const msg =
+          body?.detail || "Guild mage failed to set up your profile. Try again.";
+        setError(msg);
+        alert(msg);
+        setLoading(false);
+        return;
+      }
+
+      const data = await res.json();
+
+      saveProfile({
+        name: name || undefined,
+        challengeLevel,
+        dietType,
+        heightCm: Number(heightCm),
+        weightKg: Number(weightKg),
+        sex,
+        age: Number(age),
+        goalWeightKg: Number(goalWeightKg),
+        userId: data.user_id,
+        goalType: data.goal_type,
+        maintenanceCalories: data.maintenance_calories,
+        targetCalories: data.target_calories,
+        dailyWaterTargetLiters: data.daily_water_target_liters,
+        xpMultiplier: data.xp_multiplier,
+        totalXP: 0,
+        currentDay: 1,
+        completedDays: [],
+      });
+
+      setLoading(false);
+      goTo("dashboard");
+    } catch (e) {
+      console.error(e);
+      const msg = "Network error contacting the guild server.";
+      setError(msg);
+      alert(msg);
+      setLoading(false);
+    }
   };
 
   const inputClasses =
@@ -56,26 +118,26 @@ const OnboardingScreen: React.FC<OnboardingProps> = ({ goTo, saveProfile }) => {
         backgroundBlendMode: "overlay",
       }}
     >
-      <div className="relative mx-auto 
+      <div
+        className="relative mx-auto 
           w-full 
-          max-w-sm           /* smaller than md */
-          scale-[0.85]       /* **magical mobile shrink** */
-          sm:scale-100       /* normal size on tablet & desktop */">
-        {/* CARD CONTENT */}
+          max-w-sm
+          scale-[0.85]
+          sm:scale-100"
+      >
         <div
           className="
             relative z-10 
             rounded-xl 
             border border-stone-700/60 
             bg-[rgba(40,30,20,0.88)]
-            p-4 sm:p-6           /* less padding on mobile */
+            p-4 sm:p-6
             shadow-[0_0_25px_rgba(0,0,0,0.7)] 
             backdrop-blur-sm
             text-stone-100
             font-medieval
           "
         >
-          {/* Header */}
           <div className="mb-4">
             <p className="text-[11px] uppercase tracking-[0.2em] text-emerald-300/70 font-cinzel">
               Order of Wellness
@@ -88,7 +150,12 @@ const OnboardingScreen: React.FC<OnboardingProps> = ({ goTo, saveProfile }) => {
             </p>
           </div>
 
-          {/* Name */}
+          {error && (
+            <p className="mb-3 text-[11px] text-rose-300 font-medieval">
+              {error}
+            </p>
+          )}
+
           <div className="mb-3">
             <label className="block text-xs font-medieval text-stone-200 mb-1">
               Adventurer name
@@ -101,7 +168,6 @@ const OnboardingScreen: React.FC<OnboardingProps> = ({ goTo, saveProfile }) => {
             />
           </div>
 
-          {/* Challenge level */}
           <div className="mb-3">
             <label className="block text-xs font-medieval text-stone-200 mb-1">
               Choose your path
@@ -113,10 +179,8 @@ const OnboardingScreen: React.FC<OnboardingProps> = ({ goTo, saveProfile }) => {
                 ["hard", "🐉 Hard"],
               ] as [ChallengeLevel, string][]).map(([value, label]) => {
                 const active = challengeLevel === value;
-
                 const activeClasses =
                   "border-emerald-500/60 bg-gradient-to-b from-emerald-700/90 to-emerald-900 text-emerald-50 shadow-[0_0_15px_rgba(16,185,129,0.45)] font-cinzel";
-
                 const inactiveClasses =
                   "border-stone-700 bg-[rgba(60,45,30,0.7)] text-stone-300 hover:border-emerald-600/40 hover:text-emerald-200 transition font-medieval";
 
@@ -137,7 +201,50 @@ const OnboardingScreen: React.FC<OnboardingProps> = ({ goTo, saveProfile }) => {
             </div>
           </div>
 
-          {/* Diet */}
+          <div className="mb-3">
+            <label className="block text-xs text-stone-200 mb-1 font-medieval">
+              Quest goal
+            </label>
+            <div className="flex gap-2 mt-1">
+              <button
+                type="button"
+                onClick={() => setGoalType("weight_loss")}
+                className={[
+                  "flex-1 rounded-lg px-3 py-2 text-xs font-semibold border transition",
+                  goalType === "weight_loss"
+                    ? "border-emerald-500/60 bg-gradient-to-b from-emerald-700/90 to-emerald-900 text-emerald-50 shadow-[0_0_15px_rgba(16,185,129,0.45)] font-cinzel"
+                    : "border-stone-700 bg-[rgba(60,45,30,0.7)] text-stone-300 hover:border-emerald-600/40 hover:text-emerald-200 font-medieval",
+                ].join(" ")}
+              >
+                🔻 Lose
+              </button>
+              <button
+                type="button"
+                onClick={() => setGoalType("maintenance")}
+                className={[
+                  "flex-1 rounded-lg px-3 py-2 text-xs font-semibold border transition",
+                  goalType === "maintenance"
+                    ? "border-emerald-500/60 bg-gradient-to-b from-emerald-700/90 to-emerald-900 text-emerald-50 shadow-[0_0_15px_rgba(16,185,129,0.45)] font-cinzel"
+                    : "border-stone-700 bg-[rgba(60,45,30,0.7)] text-stone-300 hover:border-emerald-600/40 hover:text-emerald-200 font-medieval",
+                ].join(" ")}
+              >
+                ⚖️ Maintain
+              </button>
+              <button
+                type="button"
+                onClick={() => setGoalType("weight_gain")}
+                className={[
+                  "flex-1 rounded-lg px-3 py-2 text-xs font-semibold border transition",
+                  goalType === "weight_gain"
+                    ? "border-emerald-500/60 bg-gradient-to-b from-emerald-700/90 to-emerald-900 text-emerald-50 shadow-[0_0_15px_rgba(16,185,129,0.45)] font-cinzel"
+                    : "border-stone-700 bg-[rgba(60,45,30,0.7)] text-stone-300 hover:border-emerald-600/40 hover:text-emerald-200 font-medieval",
+                ].join(" ")}
+              >
+                📈 Gain
+              </button>
+            </div>
+          </div>
+
           <div className="mb-3">
             <label className="block text-xs text-stone-200 mb-1 font-medieval">
               Type of diet
@@ -147,23 +254,22 @@ const OnboardingScreen: React.FC<OnboardingProps> = ({ goTo, saveProfile }) => {
               onChange={(e) => setDietType(e.target.value)}
               className={inputClasses}
             >
-              <option value="Mediterranean">Mediterranean</option>
-              <option value="Vegan">Vegan</option>
-              <option value="Keto">Keto</option>
-              <option value="Plant-based">Plant-based</option>
-              <option value="Vegetarian">Vegetarian</option>
-              <option value="Intermittent Fasting">Intermittent Fasting</option>
-              <option value="Pescatarian">Pescatarian</option>
-              <option value="Paleo">Paleo</option>
-              <option value="Flexitarian">Flexitarian</option>
-              <option value="Low-carb">Low-carb</option>
+              <option value="mediterranean">Mediterranean</option>
+              <option value="vegan">Vegan</option>
+              <option value="keto">Keto</option>
+              <option value="plant_based">Plant-based</option>
+              <option value="vegetarian">Vegetarian</option>
+              <option value="intermittent_fasting">Intermittent Fasting</option>
+              <option value="pescatarian">Pescatarian</option>
+              <option value="paleo">Paleo</option>
+              <option value="flexitarian">Flexitarian</option>
+              <option value="low_carb">Low-carb</option>
             </select>
             <p className="mt-1 text-[11px] text-stone-400 font-medieval">
               You can change this later if your quest path evolves.
             </p>
           </div>
 
-          {/* Height / Weight */}
           <div className="grid grid-cols-2 gap-2 mb-3">
             <div>
               <label className="block text-xs text-stone-200 mb-1 font-medieval">
@@ -191,7 +297,6 @@ const OnboardingScreen: React.FC<OnboardingProps> = ({ goTo, saveProfile }) => {
             </div>
           </div>
 
-          {/* Sex & Age */}
           <div className="grid grid-cols-[1.4fr_1fr] gap-2 mb-3">
             <div>
               <label className="block text-xs text-stone-200 mb-1 font-medieval">
@@ -223,7 +328,6 @@ const OnboardingScreen: React.FC<OnboardingProps> = ({ goTo, saveProfile }) => {
             </div>
           </div>
 
-          {/* Goal weight */}
           <div className="mb-5">
             <label className="block text-xs text-stone-200 mb-1 font-medieval">
               End goal weight (kg)
@@ -240,9 +344,9 @@ const OnboardingScreen: React.FC<OnboardingProps> = ({ goTo, saveProfile }) => {
             </p>
           </div>
 
-          {/* CTA */}
           <button
             onClick={handleContinue}
+            disabled={loading}
             className="
               w-full rounded-lg 
               bg-gradient-to-b from-emerald-700 to-emerald-900 
@@ -252,15 +356,15 @@ const OnboardingScreen: React.FC<OnboardingProps> = ({ goTo, saveProfile }) => {
               shadow-[0_0_20px_rgba(16,185,129,0.5)]
               hover:shadow-[0_0_30px_rgba(16,185,129,0.7)]
               hover:brightness-110
+              disabled:opacity-60
               transition
               font-cinzel
             "
           >
-            Enter the Quest Gate ⚔️
+            {loading ? "Summoning guild mage..." : "Enter the Quest Gate ⚔️"}
           </button>
         </div>
 
-        {/* VINES */}
         <img
           src={Vine}
           alt=""

@@ -1,72 +1,58 @@
-# 🛡️ **Wellness Quest 75**  
-### _Gamify your discipline. Transform your habits. Become a legend._
+# **Wellness Quest 75**  
+### _Gamify your discipline. Transform your everyday habits. Become a legend._
 
 ---
 
-## 🌿 **Overview**
+## **Overview**
 
-**Wellness Quest 75** is a gamified habit-building app inspired by fantasy RPGs and the 75 Hard challenge.  
-Users embark on a 75-day “quest” where daily tasks, XP, medieval themes, and animated progression paths turn personal growth into a real adventure.
+**Wellness Quest 75** is a gamified habit-building app inspired by fantasy RPGs for the 75 Soft/Medium/Hard challenge.  
+Users embark on a 75-day “quest” where daily tasks, XP, and medieval themes turn personal growth into a fun adventure.
 
 This project is built with:
 
-- ⚛️ **React + TypeScript**
-- 🎨 **TailwindCSS**
-- 🧠 **Gemini / AI Meal Planning (backend integration)**
+- Frontend: React, TypeScript, TailwindCSS
+- Backend: Python FastAPI, GeminiAPI (AI-generated meal plans)
+- Database: JSON
+- Version Control: Git/Github
 ---
 
-## 🏰 **Features**
+## **Features**
+- Allows a user to log meals, workouts, and daily habits
+- Recieve personalized meal plans and workout suggestions
 
-### ⚔️ **Onboarding (Character Creation)**
-- Choose a challenge path: **Grove**, **Blade**, or **Dragon**
+### **Onboarding (Character Creation)**
 - Set your physical stats & goals
 - Medieval UI with vines, scroll effects
 
-### 📜 **Dashboard**
-- Personalized **Guild Rank & XP system**
+### **Daily Rule System**
+Based on path difficulty:
+- Soft → Wellness Beginner
+- Medium → Fitness Novice
+- Hard → 75 Hard–style Discipline
+
+### **Dashboard**
 - Animated **quest map** with jumping knight character
 - XP bar with progress between levels
-- Daily castle nodes (Days 1–75)
-
-### 🗺️ **Quest Map**
-- Knight automatically **jumps** to the next completed castle
+- Daily castle nodes to show your progress
 - Fails reset to a **“Quest Failed”** screen
 
-### 🍎 **AI Meal Plan**
+### **Presonalized AI Meal Plan**
 Gemini generates:
-- Breakfast / Lunch / Dinner
-- Macros + calories
+- Breakfast / Lunch / Dinner, and their caloric counts
 - Adjusted for diet type & user stats
 
-### 📘 **Daily Rule System**
-Based on path difficulty:
-- Soft → wellness beginner
-- Medium → fitness cleanser
-- Hard → 75 Hard–style discipline
-
-### ✍️ **Post-Day Log**
+### **Post-Day Log (To be Implemented**
 - Logs completion  
 - Adds XP  
 - Triggers knight animation  
 - Or sends you to the **Failed Run Screen**
 
-### 📊 **Stats Screen**
+### **Stats Screen (In Development)**
 Shows:
 - XP Level  
 - Completion Rate  
 - Streaks  
-- Days Completed  
-
----
-
-## 🛠️ **Tech Stack**
-
-| Category | Tools |
-|---------|-------|
-| Framework | React + Vite |
-| Language | TypeScript |
-| Styling | TailwindCSS |
-| Animations | CSS transitions, SVG path motion |
+- Days Completed
 | Assets | Custom medieval UI (wall textures, vines, castles) |
 | Backend (planned) | Python / Gemini API |
 | Version Control | Git + GitHub |

@@ -185,7 +185,7 @@ const PostDayLogScreen: React.FC<PostDayLogProps> = ({
           </button>
         </div>
 
-        {/* VINES – same positions as onboarding / dashboard / day detail */}
+        {/* VINES */}
         <img
           src={Vine}
           alt=""

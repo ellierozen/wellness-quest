@@ -59,7 +59,7 @@ export default function LevelProgression({
     })
     .join(" ");
 
-  // 🧍‍♂️ knight position, starts at lastCompletedDay (if any)
+  // knight position, starts at lastCompletedDay
   const [knightPos, setKnightPos] = useState(() => {
     const startDay = lastCompletedDay ?? currentDay;
     const idx = Math.max(0, startDay - 1);
@@ -82,7 +82,7 @@ export default function LevelProgression({
     }
   }, [currentDay]);
 
-  // 🏃 animate knight from lastCompletedDay → currentDay
+  // animate knight from lastCompletedDay -> currentDay
   useEffect(() => {
     const targetIdx = Math.max(0, currentDay - 1);
     const targetPoint = computePoint(
@@ -113,7 +113,6 @@ export default function LevelProgression({
 
       return () => cancelAnimationFrame(id);
     } else {
-      // no lastCompletedDay? just sync with currentDay
       setKnightPos(targetPoint);
     }
   }, [currentDay, lastCompletedDay, horizontalSpacing, startX, baseY, offsets]);

@@ -260,7 +260,7 @@ const OnboardingScreen: React.FC<OnboardingProps> = ({ goTo, saveProfile }) => {
           </button>
         </div>
 
-        {/* VINES (kept same orientation as before) */}
+        {/* VINES */}
         <img
           src={Vine}
           alt=""

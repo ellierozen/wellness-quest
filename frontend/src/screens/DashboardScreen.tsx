@@ -12,14 +12,14 @@ interface DashboardProps {
   goTo: ScreenSetter;
   selectDay: (day: number | null) => void;
   profile: Profile | null;
-  lastCompletedDay: number | null; // 👈 NEW
+  lastCompletedDay: number | null;
 }
 
 export default function DashboardScreen({
   goTo,
   selectDay,
   profile,
-  lastCompletedDay, // 👈 NEW
+  lastCompletedDay,
 }: DashboardProps) {
   const totalDays = 75;
   const currentDay = profile?.currentDay || 12;
@@ -57,7 +57,7 @@ export default function DashboardScreen({
           sm:scale-100
         "
       >
-        {/* MAIN CARD – matches onboarding card */}
+        {/* MAIN CARD */}
         <div
           className="
             relative z-10 
@@ -104,11 +104,11 @@ export default function DashboardScreen({
               totalDays={totalDays}
               completedDays={completedDays}
               goToDay={handleDayClick}
-              lastCompletedDay={lastCompletedDay}   // 👈 pass here
+              lastCompletedDay={lastCompletedDay}
             />
           </section>
 
-          {/* Bottom buttons – styled to match CTA / fonts */}
+          {/* Bottom buttons */}
           <section className="space-y-2">
             <button
               onClick={() => goTo("stats")}
@@ -150,7 +150,7 @@ export default function DashboardScreen({
           </section>
         </div>
 
-        {/* VINES – EXACT same positions as onboarding */}
+        {/* VINES */}
         <img
           src={Vine}
           alt=""

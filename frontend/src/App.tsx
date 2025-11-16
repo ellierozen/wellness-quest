@@ -4,6 +4,7 @@ import DashboardScreen from "./screens/DashboardScreen";
 import StatsScreen from "./screens/StatsScreen";
 import DayDetailScreen from "./screens/DayDetailScreen";
 import PostDayLogScreen from "./screens/PostDayLogScreen";
+import FailedRunScreen from "./screens/FailedRunScreen"
 
 // Which screen is visible
 export type Screen =
@@ -11,7 +12,8 @@ export type Screen =
   | "dashboard"
   | "stats"
   | "dayDetail"
-  | "postDayLog";
+  | "postDayLog"
+  |"failedRun";
 
 // Difficulty options
 export type ChallengeLevel = "soft" | "medium" | "hard";
@@ -35,10 +37,7 @@ export type Profile = {
 function App() {
   const [currentScreen, setCurrentScreen] = useState<Screen>("onboarding");
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
-
   const [profile, setProfile] = useState<Profile | null>(null);
-
-  // 👇 NEW: remember which day was just fully completed
   const [lastCompletedDay, setLastCompletedDay] = useState<number | null>(null);
 
   return (
@@ -68,10 +67,9 @@ function App() {
 
       {currentScreen === "dayDetail" && selectedDay !== null && (
         <DayDetailScreen
-        goTo={setCurrentScreen}
-        day={selectedDay}
-        profile={profile}
-        //mealPlan={}
+          goTo={setCurrentScreen}
+          day={selectedDay}
+          profile={profile}
         />
       )}
 
@@ -82,6 +80,13 @@ function App() {
           profile={profile}
           setProfile={setProfile}
           setLastCompletedDay={setLastCompletedDay}
+        />
+      )}
+
+      {currentScreen === "failedRun" && (
+        <FailedRunScreen
+          goTo={setCurrentScreen}
+          setProfile={setProfile}
         />
       )}
     </div>

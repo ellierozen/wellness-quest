@@ -113,7 +113,7 @@ const StatsScreen: React.FC<StatsProps> = ({ goTo, profile }) => {
 
             {/* Streaks (still mostly placeholder-ish, but styled) */}
             <div
-              className="
+              className="q
                 rounded-lg
                 border border-stone-700/70
                 bg-[rgba(60,45,30,0.85)]
@@ -146,7 +146,7 @@ const StatsScreen: React.FC<StatsProps> = ({ goTo, profile }) => {
           </div>
         </div>
 
-        {/* VINES – same as other screens */}
+        {/* VINES */}
         <img
           src={Vine}
           alt=""

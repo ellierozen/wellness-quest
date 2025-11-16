@@ -239,7 +239,7 @@ const DayDetailScreen: React.FC<DayDetailProps> = ({
             onClick={() => goTo("postDayLog")}
             className="
               w-full rounded-lg
-              bg-gradient-to-b from-emerald-700 to-emerald-900
+              bg-linear-to-b from-emerald-700 to-emerald-900
               border border-emerald-500/60
               text-emerald-50 text-sm
               px-4 py-2.5
@@ -268,7 +268,7 @@ const DayDetailScreen: React.FC<DayDetailProps> = ({
         <img
           src={Vine}
           alt=""
-          className="absolute -bottom-3 -left-3 w-20 opacity-90 -rotate-0 pointer-events-none select-none z-20"
+          className="absolute -bottom-3 -left-3 w-20 opacity-90 rotate-0 pointer-events-none select-none z-20"
         />
         <img
           src={Vine}

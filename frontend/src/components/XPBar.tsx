@@ -1,5 +1,5 @@
-// src/components/XPBar.tsx
-import React, { useMemo } from "react";
+/* eslint-disable react-refresh/only-export-components */
+import { useMemo } from "react";
 
 export type LevelDef = {
   id: number;
@@ -10,7 +10,7 @@ export type LevelDef = {
 // Linear XP per completed day
 export const XP_PER_DAY = 40;
 
-// Levels - cumulative thresholds up to final (tune titles if you want)
+// Levels - cumulative thresholds up to final
 export const LEVEL_DEFINITIONS: LevelDef[] = [
   { id: 1, title: "Initiate", threshold: 0 },
   { id: 2, title: "Pathfinder", threshold: 100 },
@@ -42,10 +42,18 @@ export function computeLevelFromXP(xp: number) {
 
   // If xp >= last threshold we are at final level
   const atFinal = xp >= levels[levels.length - 1].threshold;
-  const nextThreshold = atFinal ? levels[levels.length - 1].threshold : next.threshold;
+  const nextThreshold = atFinal
+    ? levels[levels.length - 1].threshold
+    : next.threshold;
   const currThreshold = current.threshold;
 
-  const progressInLevel = Math.max(0, Math.min(1, (xp - currThreshold) / Math.max(1, nextThreshold - currThreshold)));
+  const progressInLevel = Math.max(
+    0,
+    Math.min(
+      1,
+      (xp - currThreshold) / Math.max(1, nextThreshold - currThreshold)
+    )
+  );
 
   return {
     currentLevel: current,
@@ -73,7 +81,9 @@ export default function XPBar({ totalXP, compact = false }: XPBarProps) {
     <div className={`w-full ${compact ? "text-sm" : "text-base"}`}>
       <div className="flex items-center justify-between mb-2">
         <div>
-          <div className="text-xs text-slate-400 uppercase tracking-wide">Guild Rank</div>
+          <div className="text-xs text-slate-400 uppercase tracking-wide">
+            Guild Rank
+          </div>
           <div className="font-semibold text-slate-100">
             {`Level ${currentLevel.id} • ${currentLevel.title}`}
           </div>

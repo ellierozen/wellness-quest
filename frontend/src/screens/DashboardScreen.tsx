@@ -1,7 +1,7 @@
 import React from "react";
 import type { Screen, Profile } from "../App";
 import LevelProgression from "../components/LevelProgression";
-import XPBar from "../components/XPBar";
+import XPBar, { XP_PER_DAY } from "../components/XPBar";
 
 import Vine from "../assets/vines/vine.png";
 import Wall from "../assets/wall/wall.png";
@@ -24,6 +24,7 @@ export default function DashboardScreen({
   const totalDays = 75;
   const currentDay = profile?.currentDay || 12;
   const completedDays = profile?.completedDays || [];
+  const totalXP = completedDays.length * XP_PER_DAY;
 
   const adventurerName = profile?.name || "Adventurer";
   const challengeLabel =
@@ -88,11 +89,11 @@ export default function DashboardScreen({
           </header>
 
           {/* XP + Level */}
-            <section className="mb-4 rounded-xl border border-slate-700/70 bg-slate-900/80 p-4 shadow-lg">
-              {profile && (
-                <XPBar totalXP={profile.totalXP} />
-              )}
-            </section>
+          <section className="mb-4 rounded-xl border border-slate-700/70 bg-slate-900/80 p-4 shadow-lg">
+            {profile && (
+              <XPBar totalXP={totalXP} />
+            )}
+          </section>
 
           {/* Quest Log / Level Progression */}
           <section className="mb-4 rounded-lg border border-stone-700/60 bg-[rgba(60,45,30,0.7)] p-3 sm:p-4 shadow-[0_0_18px_rgba(0,0,0,0.6)]">

@@ -111,7 +111,40 @@ const StatsScreen: React.FC<StatsProps> = ({ goTo, profile }) => {
               </div>
             </div>
 
-           
+            {/* Streaks (still mostly placeholder-ish, but styled) */}
+            <div
+              className="
+                rounded-lg
+                border border-stone-700/70
+                bg-[rgba(60,45,30,0.85)]
+                p-3 sm:p-4
+                shadow-[0_0_15px_rgba(0,0,0,0.6)]
+              "
+            >
+              <p className="text-[11px] uppercase tracking-[0.15em] text-emerald-300/80 font-cinzel">
+                Streaks
+              </p>
+              <p className="mt-2 text-sm text-stone-100 font-medieval">
+                Current streak:{" "}
+                <span className="font-semibold text-emerald-200">
+                  2 days
+                </span>{" "}
+                <span className="text-[11px] text-stone-400">
+                  (placeholder)
+                </span>
+              </p>
+              <p className="text-sm text-stone-100 font-medieval">
+                Longest streak:{" "}
+                <span className="font-semibold text-emerald-200">
+                  4 days
+                </span>{" "}
+                <span className="text-[11px] text-stone-400">
+                  (placeholder)
+                </span>
+              </p>
+            </div>
+          </div>
+        </div>
 
         {/* VINES – same as other screens */}
         <img

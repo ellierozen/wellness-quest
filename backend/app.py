@@ -171,17 +171,25 @@ def save_state() -> None:
 # ---------- Helper functions ----------
 
 def calculate_maintenance_calories(req: OnboardingRequest) -> int:
-    """
-    Rough BMR-based estimate.
-    This is NOT medical advice, just for demo.
-    """
     if req.sex.lower() == "female":
         bmr = 10 * req.current_weight_kg + 6.25 * req.height_cm - 5 * req.age - 161
     else:
         bmr = 10 * req.current_weight_kg + 6.25 * req.height_cm - 5 * req.age + 5
 
-    # assume light activity
-    maintenance = int(bmr * 1.4)
+    if req.challenge_level == ChallengeLevel.soft:
+        activity_factor = 1.3
+    elif req.challenge_level == ChallengeLevel.medium:
+        activity_factor = 1.5
+    else:
+        activity_factor = 1.7
+
+    maintenance = int(bmr * activity_factor)
+
+    if req.sex.lower() == "female":
+        maintenance = max(maintenance, 1500)
+    else:
+        maintenance = max(maintenance, 1700)
+
     return maintenance
 
 
@@ -194,13 +202,6 @@ def get_xp_multiplier(level: ChallengeLevel) -> float:
 
 
 def get_calorie_offset(goal_type: GoalType, level: ChallengeLevel) -> int:
-    """
-    Decide calorie surplus/deficit based on goal + challenge level.
-    Super simplified:
-      - weight_loss: small/medium/aggressive deficit
-      - weight_gain: small/medium/bigger surplus
-      - maintenance: 0
-    """
     if goal_type == GoalType.maintenance:
         return 0
 
@@ -209,14 +210,13 @@ def get_calorie_offset(goal_type: GoalType, level: ChallengeLevel) -> int:
             return -300
         if level == ChallengeLevel.medium:
             return -500
-        return -700  # hard
+        return -700
 
-    # weight_gain:
     if level == ChallengeLevel.soft:
         return +250
     if level == ChallengeLevel.medium:
         return +400
-    return +600  # hard
+    return +600
 
 def add_xp(user_id: str, date: str, base_xp: int) -> XPResponse:
     profile = user_profiles.get(user_id)

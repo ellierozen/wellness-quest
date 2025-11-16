@@ -1,43 +1,33 @@
 // src/screens/DayDetailScreen.tsx
-import React from "react";
+import React, { useEffect, useState } from "react";
 import type { Screen, Profile } from "../App";
+import { API_BASE_URL } from "../config";
 import Vine from "../assets/vines/vine.png";
 import Wall from "../assets/wall/wall.png";
 
 type ScreenSetter = React.Dispatch<React.SetStateAction<Screen>>;
 
-export interface Meal {
-  type: "Breakfast" | "Lunch" | "Dinner";
-  title: string;
-  description?: string;
-  calories: number;
-  protein: number;
-  carbs: number;
-  fats: number;
-}
-
-export interface DayMealPlan {
-  day: number;
-  totalCalories: number;
-  totalProtein: number;
-  totalCarbs: number;
-  totalFats: number;
-  meals: Meal[];
-}
-
 interface DayDetailProps {
   goTo: ScreenSetter;
   day: number;
   profile: Profile | null;
-  mealPlan?: DayMealPlan | null;
 }
 
-const DayDetailScreen: React.FC<DayDetailProps> = ({
-  goTo,
-  day,
-  profile,
-  mealPlan,
-}) => {
+type MealItem = {
+  name: string;
+  calories: number;
+  items: string[];
+};
+
+interface DailyMealPlan {
+  user_id: string;
+  date: string;
+  target_calories: number;
+  meals: MealItem[];
+  shopping_list: string[];
+}
+
+const DayDetailScreen: React.FC<DayDetailProps> = ({ goTo, day, profile }) => {
   const challenge = profile?.challengeLevel || "soft";
 
   const rulesByLevel: Record<"soft" | "medium" | "hard", string[]> = {
@@ -65,6 +55,48 @@ const DayDetailScreen: React.FC<DayDetailProps> = ({
 
   const rules = rulesByLevel[challenge];
 
+  const [mealPlan, setMealPlan] = useState<DailyMealPlan | null>(null);
+  const [loadingMeals, setLoadingMeals] = useState(false);
+  const [mealError, setMealError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!profile?.userId) return;
+
+    const fetchMeals = async () => {
+      setLoadingMeals(true);
+      setMealError(null);
+
+      const today = new Date().toISOString().slice(0, 10);
+
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/mealplan/daily`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            user_id: profile.userId,
+            date: today,
+          }),
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          setMealError(err?.detail || "Could not fetch today's meal plan.");
+          setLoadingMeals(false);
+          return;
+        }
+
+        const data: DailyMealPlan = await res.json();
+        setMealPlan(data);
+      } catch {
+        setMealError("Network error fetching meal plan.");
+      } finally {
+        setLoadingMeals(false);
+      }
+    };
+
+    fetchMeals();
+  }, [profile?.userId]);
+
   return (
     <div
       className="min-h-screen flex items-center justify-center px-4 bg-cover bg-center"
@@ -74,175 +106,133 @@ const DayDetailScreen: React.FC<DayDetailProps> = ({
         backgroundBlendMode: "overlay",
       }}
     >
-      <div
-        className="
-          relative mx-auto
-          w-full
-          max-w-sm
-          scale-[0.85]
-          sm:scale-100
-        "
-      >
-        {/* MAIN CARD */}
+      <div className="relative mx-auto w-full max-w-sm scale-[0.85] sm:scale-100">
         <div
           className="
-            relative z-10
-            rounded-xl
-            border border-stone-700/60
+            relative z-10 
+            rounded-xl 
+            border border-stone-700/60 
             bg-[rgba(40,30,20,0.88)]
             p-4 sm:p-6
-            shadow-[0_0_25px_rgba(0,0,0,0.7)]
+            shadow-[0_0_25px_rgba(0,0,0,0.7)] 
             backdrop-blur-sm
             text-stone-100
             font-medieval
           "
         >
-          {/* Back link */}
           <button
             onClick={() => goTo("dashboard")}
-            className="mb-3 text-[11px] text-emerald-200/80 hover:text-emerald-100 font-medieval"
+            className="mb-3 text-[11px] text-stone-400 hover:text-emerald-200 font-medieval"
           >
-            ← Return to guild map
+            ← Back to guild hall
           </button>
 
-          {/* Header */}
-          <div className="mb-3">
-            <p className="text-[11px] uppercase tracking-[0.2em] text-emerald-300/70 font-cinzel">
-              Quest Scroll
-            </p>
-            <h1 className="mt-1 text-2xl sm:text-3xl font-cinzel text-emerald-200 drop-shadow-lg">
-              Day {day} • Quest Rules
-            </h1>
-            <p className="mt-1 text-xs text-stone-300 font-medieval">
-              Path:{" "}
-              <span className="font-semibold capitalize text-emerald-200">
-                {challenge}
-              </span>
-            </p>
-          </div>
+          <h1 className="text-2xl sm:text-3xl font-cinzel text-emerald-200 drop-shadow-lg mb-1">
+            Day {day} • Quest Rules
+          </h1>
+          <p className="text-xs text-stone-300 mb-4 font-medieval">
+            Path:{" "}
+            <span className="font-semibold capitalize text-emerald-200">
+              {challenge}
+            </span>
+          </p>
 
-          {/* Rules list */}
-          <ul className="space-y-2 mb-5">
+          <ul className="space-y-2 mb-4">
             {rules.map((rule, idx) => (
               <li
                 key={idx}
-                className="
-                  flex items-start gap-2
-                  rounded-lg
-                  border border-stone-700/70
-                  bg-[rgba(60,45,30,0.85)]
-                  p-3
-                  text-[13px] sm:text-sm
-                  shadow-[0_0_15px_rgba(0,0,0,0.6)]
-                "
+                className="flex items-start gap-2 rounded-lg border border-stone-700 bg-[rgba(60,45,30,0.9)] p-3 text-sm"
               >
-                <span className="mt-[3px] text-emerald-300">◆</span>
+                <span className="mt-[3px] text-emerald-400">◆</span>
                 <span>{rule}</span>
               </li>
             ))}
           </ul>
 
-          {/* Guild Meal Plan */}
-          <div className="mb-5">
-            <div className="mb-2 flex items-center justify-between">
-              <h2 className="text-sm sm:text-base font-cinzel text-emerald-200">
-                Guild Meal Plan 🍽️
+          <div className="mb-5 rounded-lg border border-stone-700 bg-[rgba(60,45,30,0.9)] p-3 text-sm">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-sm font-semibold font-cinzel text-emerald-200">
+                Today’s Meal Plan 🍽️
               </h2>
-              <span className="text-[11px] text-emerald-300/80 font-medieval">
-                Crafted from your stats
-              </span>
+
+              <button
+                disabled={loadingMeals}
+                onClick={() => {
+                  if (!profile?.userId) return;
+                  window.location.reload();
+                }}
+                className="text-[10px] border border-emerald-500/60 rounded px-2 py-1 text-emerald-200 hover:bg-emerald-700/30 disabled:opacity-60"
+              >
+                {loadingMeals ? "Summoning..." : "Regenerate"}
+              </button>
             </div>
 
-            {mealPlan ? (
-              <>
-                {/* Overall macros */}
-                <div className="mb-3 grid grid-cols-2 gap-2 text-[11px] sm:text-xs">
-                  <div className="rounded-md border border-stone-700/70 bg-[rgba(60,45,30,0.9)] px-2 py-1.5">
-                    <p className="text-[10px] uppercase tracking-[0.12em] text-stone-400 font-cinzel">
-                      Calories
-                    </p>
-                    <p className="text-sm font-semibold text-emerald-200 font-medieval">
-                      {mealPlan.totalCalories.toLocaleString()} kcal
-                    </p>
-                  </div>
-                  <div className="rounded-md border border-stone-700/70 bg-[rgba(60,45,30,0.9)] px-2 py-1.5">
-                    <p className="text-[10px] uppercase tracking-[0.12em] text-stone-400 font-cinzel">
-                      Protein
-                    </p>
-                    <p className="text-sm font-semibold text-emerald-200 font-medieval">
-                      {mealPlan.totalProtein} g
-                    </p>
-                  </div>
-                  <div className="rounded-md border border-stone-700/70 bg-[rgba(60,45,30,0.9)] px-2 py-1.5">
-                    <p className="text-[10px] uppercase tracking-[0.12em] text-stone-400 font-cinzel">
-                      Carbs
-                    </p>
-                    <p className="text-sm font-semibold text-emerald-200 font-medieval">
-                      {mealPlan.totalCarbs} g
-                    </p>
-                  </div>
-                  <div className="rounded-md border border-stone-700/70 bg-[rgba(60,45,30,0.9)] px-2 py-1.5">
-                    <p className="text-[10px] uppercase tracking-[0.12em] text-stone-400 font-cinzel">
-                      Fats
-                    </p>
-                    <p className="text-sm font-semibold text-emerald-200 font-medieval">
-                      {mealPlan.totalFats} g
-                    </p>
-                  </div>
-                </div>
+            {loadingMeals && (
+              <p className="text-[11px] text-stone-300">Summoning the guild chef...</p>
+            )}
 
-                {/* Meals list */}
+            {mealError && (
+              <p className="text-[11px] text-rose-300">{mealError}</p>
+            )}
+
+            {mealPlan && !loadingMeals && !mealError && (
+              <>
+                <p className="text-[11px] text-stone-300 mb-2">
+                  Target:{" "}
+                  <span className="font-semibold">
+                    {mealPlan.target_calories} kcal
+                  </span>{" "}
+                  · Date:{" "}
+                  <span className="font-semibold">{mealPlan.date}</span>
+                </p>
+
                 <div className="space-y-2">
                   {mealPlan.meals.map((meal, idx) => (
                     <div
                       key={idx}
-                      className="
-                        rounded-lg
-                        border border-stone-700/70
-                        bg-[rgba(60,45,30,0.9)]
-                        p-3
-                        text-[12px] sm:text-sm
-                        shadow-[0_0_15px_rgba(0,0,0,0.6)]
-                      "
+                      className="rounded-md border border-stone-700 bg-[rgba(30,22,15,0.95)] p-2"
                     >
-                      <div className="flex items-center justify-between mb-1">
-                        <p className="font-cinzel text-emerald-200 text-sm">
-                          {meal.type}
-                        </p>
-                        <p className="text-[11px] text-stone-300 font-medieval">
-                          {meal.calories} kcal • {meal.protein}P / {meal.carbs}C /{" "}
-                          {meal.fats}F
-                        </p>
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="font-semibold text-emerald-200">
+                          {meal.name}
+                        </span>
+                        <span className="text-[11px] text-stone-300">
+                          {meal.calories} kcal
+                        </span>
                       </div>
-                      <p className="font-medieval text-stone-100">
-                        {meal.title}
-                      </p>
-                      {meal.description && (
-                        <p className="mt-1 text-[11px] text-stone-300">
-                          {meal.description}
-                        </p>
-                      )}
+                      <ul className="text-[11px] text-stone-300 list-disc ml-4">
+                        {meal.items.map((item, i) => (
+                          <li key={i}>{item}</li>
+                        ))}
+                      </ul>
                     </div>
                   ))}
                 </div>
+
+                {mealPlan.shopping_list.length > 0 && (
+                  <div className="mt-3">
+                    <h3 className="text-[11px] font-semibold text-stone-100 mb-1">
+                      Shopping list 🧺
+                    </h3>
+                    <ul className="text-[11px] text-stone-300 list-disc ml-4">
+                      {mealPlan.shopping_list.map((item, i) => (
+                        <li key={i}>{item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </>
-            ) : (
-              <p className="text-[11px] text-stone-400 font-medieval">
-                The guild mage is still scribing today&apos;s meal scroll. 🍲
-                Connect the backend to feed in your Gemini meal plan here.
-              </p>
             )}
           </div>
 
-          {/* CTA */}
           <button
             onClick={() => goTo("postDayLog")}
             className="
-              w-full rounded-lg
-              bg-linear-to-b from-emerald-700 to-emerald-900
+              w-full rounded-lg 
+              bg-gradient-to-b from-emerald-700 to-emerald-900 
               border border-emerald-500/60
               text-emerald-50 text-sm
-              px-4 py-2.5
+              px-4 py-2.5 
               shadow-[0_0_20px_rgba(16,185,129,0.5)]
               hover:shadow-[0_0_30px_rgba(16,185,129,0.7)]
               hover:brightness-110
@@ -254,7 +244,6 @@ const DayDetailScreen: React.FC<DayDetailProps> = ({
           </button>
         </div>
 
-        {/* VINES */}
         <img
           src={Vine}
           alt=""
@@ -268,13 +257,13 @@ const DayDetailScreen: React.FC<DayDetailProps> = ({
         <img
           src={Vine}
           alt=""
-          className="absolute -bottom-3 -left-3 w-20 opacity-90 rotate-0 pointer-events-none select-none z-20"
+          className="absolute -bottom-3 -left-3 w-20 opacity-90 -rotate-0 pointer-events-none select-none z-20"
         />
         <img
           src={Vine}
           alt=""
           className="absolute -bottom-3 -right-3 w-20 opacity-90 rotate-270 pointer-events-none select-none z-20"
-        />
+        />q
       </div>
     </div>
   );

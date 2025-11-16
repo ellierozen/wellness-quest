@@ -29,9 +29,17 @@ export type Profile = {
   age: number;
   goalWeightKg: number;
 
+  // backend-linked fields
+  userId: string;
+  goalType: "weight_loss" | "weight_gain" | "maintenance";
+  maintenanceCalories: number;
+  targetCalories: number;
+  dailyWaterTargetLiters: number;
+  xpMultiplier: number;
+  totalXP: number;
+
   currentDay: number;
   completedDays: number[];
-  totalXP: number;
 };
 
 function App() {

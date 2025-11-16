@@ -5,9 +5,6 @@ from typing import List, Dict
 model = genai.GenerativeModel("gemini-2.5-flash")
 
 def generate_daily_meal_plan(target_calories: int, goal: str, diet: str, meals_per_day: int = 3):
-    """
-    Generate a daily meal plan using Gemini with guaranteed JSON output.
-    """
     schema = {
         "type": "object",
         "properties": {
@@ -45,37 +42,29 @@ for a user with the following profile:
 
 Return JSON that matches the schema EXACTLY.
 Do NOT include commentary, markdown, or any explanations.
+"""
 
-""" 
+    generation_config = {
+        "temperature": 0.2,
+        "max_output_tokens": 4096,
+        "response_mime_type": "application/json",
+        "response_schema": schema,
+    }
+
     try:
         response = model.generate_content(
             prompt,
-            config = types.GenerateContentConfig(
-                temperature=0.2,
-                max_output_tokens=4096,
-                # *** SPECIFY JSON OUTPUT AND SCHEMA HERE ***
-                response_mime_type="application/json", 
-                response_schema=schema 
-            )
+            generation_config=generation_config,
         )
-
         return response.text
-
     except Exception as e:
-        # LOG THE ERROR TO THE TERMINAL
-        print(f"\n--- GEMINI API ERROR ---")
-        print(f"Failed to generate structured content for daily meal plan. Error: {e}")
+        print("\n--- GEMINI API ERROR ---")
+        print("Failed to generate structured content for daily meal plan. Error:", e)
         print("--- END GEMINI ERROR ---\n")
-        
         return {"meals": [], "shopping_list": []}
 
 
 def generate_weekly_meal_plan(target_calories: int, goal: str, diet: str, meals_per_day: int = 3):
-    """
-    Generates a full 7-day meal plan and a consolidated shopping list in a single, efficient call.
-    Returns a JSON string on success, or a dictionary on API failure.
-    """
-    # Define the complex JSON schema for the entire week
     WEEKLY_SCHEMA = {
         "type": "object",
         "properties": {
@@ -129,23 +118,22 @@ shopping list for ALL 7 days.
 
 Return JSON that matches the schema EXACTLY.
 """
+
+    generation_config = {
+        "temperature": 0.2,
+        "max_output_tokens": 4096,
+        "response_mime_type": "application/json",
+        "response_schema": WEEKLY_SCHEMA,
+    }
+
     try:
         response = model.generate_content(
             prompt,
-            config=types.GenerateContentConfig(
-                temperature=0.2,
-                max_output_tokens=4096, # Increased tokens for a full week plan
-                response_mime_type="application/json",
-                response_schema=WEEKLY_SCHEMA
-            )
+            generation_config=generation_config,
         )
-        # On success, return the JSON string
         return response.text
-
     except Exception as e:
-        print(f"\n--- GEMINI WEEKLY API ERROR ---")
-        print(f"Failed to generate structured content for weekly meal plan. Error: {e}")
+        print("\n--- GEMINI WEEKLY API ERROR ---")
+        print("Failed to generate structured content for weekly meal plan. Error:", e)
         print("--- END GEMINI ERROR ---\n")
-
-        # On failure, return an empty dictionary as a fallback
         return {"days": [], "shopping_list": []}

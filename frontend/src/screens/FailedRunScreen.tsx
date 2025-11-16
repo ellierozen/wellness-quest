@@ -70,7 +70,7 @@ const FailedRunScreen: React.FC<FailedRunProps> = ({ goTo, setProfile }) => {
               onClick={handleRestart}
               className="
                 w-full rounded-lg
-                bg-gradient-to-b from-emerald-700 to-emerald-900
+                bg-linear-to-b from-emerald-700 to-emerald-900
                 border border-emerald-500/60
                 text-emerald-50 text-sm
                 px-4 py-2.5
